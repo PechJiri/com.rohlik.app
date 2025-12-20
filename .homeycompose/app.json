@@ -1,6 +1,6 @@
 {
   "id": "com.rohlik.app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "brandColor": "#000000",
@@ -36,7 +36,7 @@
       }
     }
   },
-  "source": "https://github.com/PechJiri/V2Cwallbox",
+  "source": "https://github.com/PechJiri/com.rohlik.app",
   "homepage": "https://rohlik.cz//",
   "support": "mailto:jirka@pechovic.cz",
   "homeyCommunityTopicId": 147440
