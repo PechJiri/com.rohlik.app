@@ -1,0 +1,10 @@
+{
+    "type": "string",
+    "title": {
+        "en": "Delivery Status"
+    },
+    "getable": true,
+    "setable": false,
+    "uiComponent": "sensor",
+    "icon": "/assets/delivery.svg"
+}

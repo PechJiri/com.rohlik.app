@@ -1,0 +1,603 @@
+{
+  "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
+  "id": "com.rohlik.app",
+  "version": "1.0.0",
+  "compatibility": ">=12.4.0",
+  "sdk": 3,
+  "brandColor": "#000000",
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "Rohlik.cz"
+  },
+  "description": {
+    "en": "Automate your groceries"
+  },
+  "category": [
+    "tools"
+  ],
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Jiri Pech",
+    "email": "jirka@pechovic.cz"
+  },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "pechjiri"
+      },
+      "githubSponsors": {
+        "username": "PechJiri"
+      }
+    }
+  },
+  "source": "https://github.com/PechJiri/V2Cwallbox",
+  "homepage": "https://rohlik.cz//",
+  "support": "mailto:jirka@pechovic.cz",
+  "homeyCommunityTopicId": 114910,
+  "flow": {
+    "triggers": [
+      {
+        "title": {
+          "en": "Courier is approaching"
+        },
+        "tokens": [
+          {
+            "name": "eta",
+            "type": "number",
+            "title": {
+              "en": "ETA (min)"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+          }
+        ],
+        "id": "courier_approaching"
+      }
+    ],
+    "actions": [
+      {
+        "title": {
+          "en": "Add item to cart"
+        },
+        "titleFormatted": {
+          "en": "Add [[pieces]] of [[product]] to cart"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+          },
+          {
+            "name": "product",
+            "type": "autocomplete",
+            "title": {
+              "en": "Product"
+            }
+          },
+          {
+            "name": "pieces",
+            "type": "number",
+            "title": {
+              "en": "Quantity"
+            },
+            "placeholder": {
+              "en": "1 (default)"
+            },
+            "required": false,
+            "min": 1
+          }
+        ],
+        "id": "add_item"
+      },
+      {
+        "title": {
+          "en": "Add item by product ID"
+        },
+        "titleFormatted": {
+          "en": "Add [[pieces]] of product ID [[product_id]] to cart"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+          },
+          {
+            "name": "product_id",
+            "type": "text",
+            "title": {
+              "en": "Product ID"
+            },
+            "placeholder": {
+              "en": "e.g. 123456"
+            }
+          },
+          {
+            "name": "pieces",
+            "type": "number",
+            "title": {
+              "en": "Quantity"
+            },
+            "placeholder": {
+              "en": "1 (default)"
+            },
+            "required": false,
+            "min": 1
+          }
+        ],
+        "id": "add_item_by_id"
+      },
+      {
+        "title": {
+          "en": "Get cart content"
+        },
+        "titleFormatted": {
+          "en": "Get cart content"
+        },
+        "tokens": [
+          {
+            "name": "cart_content",
+            "type": "string",
+            "title": {
+              "en": "Cart content"
+            },
+            "example": {
+              "en": "Milk, 2 pcs, 25.90 Kč; Bread, 1 pcs, 35.00 Kč"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+          }
+        ],
+        "id": "get_cart_content"
+      },
+      {
+        "title": {
+          "en": "Get product ID"
+        },
+        "titleFormatted": {
+          "en": "Get ID of [[product]]"
+        },
+        "tokens": [
+          {
+            "name": "product_id",
+            "type": "string",
+            "title": {
+              "en": "Product ID"
+            },
+            "example": {
+              "en": "123456"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+          },
+          {
+            "name": "product",
+            "type": "autocomplete",
+            "title": {
+              "en": "Product"
+            }
+          }
+        ],
+        "id": "get_product_id"
+      },
+      {
+        "title": {
+          "en": "Remove item from cart"
+        },
+        "titleFormatted": {
+          "en": "Remove [[product_in_cart]] from cart"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+          },
+          {
+            "name": "product_in_cart",
+            "type": "autocomplete",
+            "title": {
+              "en": "Item"
+            }
+          }
+        ],
+        "id": "remove_item"
+      },
+      {
+        "title": {
+          "en": "Remove item by product ID"
+        },
+        "titleFormatted": {
+          "en": "Remove product ID [[product_id]] from cart"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+          },
+          {
+            "name": "product_id",
+            "type": "text",
+            "title": {
+              "en": "Product ID"
+            },
+            "placeholder": {
+              "en": "e.g. 123456"
+            }
+          }
+        ],
+        "id": "remove_item_by_id"
+      },
+      {
+        "title": {
+          "en": "Test API Method"
+        },
+        "titleFormatted": {
+          "en": "Call [[method]] API method"
+        },
+        "hint": {
+          "en": "Test any RohlikClient API method (check logs for response)"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+          },
+          {
+            "name": "method",
+            "type": "dropdown",
+            "title": {
+              "en": "API Method"
+            },
+            "values": [
+              {
+                "id": "getCartContent",
+                "label": {
+                  "en": "Get Cart Content"
+                }
+              },
+              {
+                "id": "getUpcomingOrders",
+                "label": {
+                  "en": "Get Upcoming Orders"
+                }
+              },
+              {
+                "id": "getDeliverySlots",
+                "label": {
+                  "en": "Get Delivery Slots"
+                }
+              },
+              {
+                "id": "getAccountData",
+                "label": {
+                  "en": "Get Account Data"
+                }
+              },
+              {
+                "id": "getOrderHistory",
+                "label": {
+                  "en": "Get Order History"
+                }
+              },
+              {
+                "id": "getDeliveryInfo",
+                "label": {
+                  "en": "Get Delivery Info"
+                }
+              },
+              {
+                "id": "getPremiumInfo",
+                "label": {
+                  "en": "Get Premium Info"
+                }
+              },
+              {
+                "id": "getAnnouncements",
+                "label": {
+                  "en": "Get Announcements"
+                }
+              },
+              {
+                "id": "getReusableBagsInfo",
+                "label": {
+                  "en": "Get Reusable Bags Info"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "test_api_method"
+      }
+    ]
+  },
+  "drivers": [
+    {
+      "name": {
+        "en": "Rohlik Account"
+      },
+      "class": "other",
+      "capabilities": [
+        "alarm_slots_available",
+        "delivery_express",
+        "delivery_common",
+        "delivery_eco",
+        "measure_cart_total",
+        "measure_cart_items",
+        "measure_next_delivery_eta",
+        "string_next_delivery_status",
+        "measure_reusable_bags"
+      ],
+      "images": {
+        "small": "/drivers/rohlik/assets/images/small.png",
+        "large": "/drivers/rohlik/assets/images/large.png",
+        "xlarge": "/drivers/rohlik/assets/images/xlarge.png"
+      },
+      "pair": [
+        {
+          "id": "pair",
+          "navigation": {
+            "next": "list_my_devices"
+          }
+        },
+        {
+          "id": "list_my_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_my_devices",
+            "prev": "pair"
+          },
+          "options": {
+            "singular": true
+          }
+        },
+        {
+          "id": "add_my_devices",
+          "template": "add_devices"
+        }
+      ],
+      "id": "rohlik",
+      "settings": [
+        {
+          "id": "username",
+          "type": "text",
+          "label": {
+            "en": "Username (Email)"
+          },
+          "hint": {
+            "en": "Your Rohlik account email address"
+          }
+        },
+        {
+          "id": "password",
+          "type": "password",
+          "label": {
+            "en": "Password"
+          },
+          "hint": {
+            "en": "Your Rohlik account password"
+          }
+        },
+        {
+          "id": "region",
+          "type": "dropdown",
+          "label": {
+            "en": "Region"
+          },
+          "hint": {
+            "en": "Select your Rohlik region"
+          },
+          "value": "cz",
+          "values": [
+            {
+              "id": "cz",
+              "label": {
+                "en": "Rohlik.cz (Czech Republic)"
+              }
+            },
+            {
+              "id": "de",
+              "label": {
+                "en": "Knuspr.de (Germany)"
+              }
+            },
+            {
+              "id": "at",
+              "label": {
+                "en": "Gurkerl.at (Austria)"
+              }
+            },
+            {
+              "id": "hu",
+              "label": {
+                "en": "Kifli.hu (Hungary)"
+              }
+            },
+            {
+              "id": "ro",
+              "label": {
+                "en": "Sezamo.ro (Romania)"
+              }
+            }
+          ]
+        },
+        {
+          "id": "polling_interval_general",
+          "type": "number",
+          "label": {
+            "en": "General Update Interval (min)"
+          },
+          "hint": {
+            "en": "How often to update cart and orders (default: 1 minute)"
+          },
+          "value": 1,
+          "attr": {
+            "min": 1
+          }
+        },
+        {
+          "id": "polling_interval_slots",
+          "type": "number",
+          "label": {
+            "en": "Delivery Slots Interval (min)"
+          },
+          "hint": {
+            "en": "How often to update delivery slots (default: 15 minutes)"
+          },
+          "value": 15,
+          "attr": {
+            "min": 1
+          }
+        },
+        {
+          "id": "enable_logging",
+          "type": "checkbox",
+          "label": {
+            "en": "Enable Debug Logging"
+          },
+          "value": false,
+          "hint": {
+            "en": "Enable detailed logging for debugging purposes"
+          }
+        }
+      ]
+    }
+  ],
+  "capabilities": {
+    "alarm_slots_available": {
+      "type": "boolean",
+      "title": {
+        "en": "Express Slots"
+      },
+      "getable": true,
+      "setable": false,
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Express Slots Available"
+      },
+      "insightsTitleFalse": {
+        "en": "Express slots are not available"
+      },
+      "icon": "/assets/time.svg"
+    },
+    "delivery_common": {
+      "type": "string",
+      "title": {
+        "en": "Fastest Common Delivery"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/delivery.svg"
+    },
+    "delivery_eco": {
+      "type": "string",
+      "title": {
+        "en": "Eco Delivery"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/delivery.svg"
+    },
+    "delivery_express": {
+      "type": "string",
+      "title": {
+        "en": "Express Delivery"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/delivery.svg"
+    },
+    "measure_cart_items": {
+      "type": "number",
+      "title": {
+        "en": "Items in Cart"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/cart.svg"
+    },
+    "measure_cart_total": {
+      "type": "number",
+      "title": {
+        "en": "Cart Total"
+      },
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/cart.svg"
+    },
+    "measure_next_delivery_eta": {
+      "type": "number",
+      "title": {
+        "en": "Delivery ETA"
+      },
+      "units": {
+        "en": "min"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/time.svg"
+    },
+    "measure_reusable_bags": {
+      "type": "number",
+      "title": {
+        "en": "Reusable Bags"
+      },
+      "units": {
+        "en": "pcs"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/cart.svg"
+    },
+    "string_next_delivery_status": {
+      "type": "string",
+      "title": {
+        "en": "Delivery Status"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/delivery.svg"
+    }
+  }
+}

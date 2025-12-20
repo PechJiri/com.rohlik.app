@@ -1,0 +1,21 @@
+{
+    "title": {
+        "en": "Courier is approaching"
+    },
+    "tokens": [
+        {
+            "name": "eta",
+            "type": "number",
+            "title": {
+                "en": "ETA (min)"
+            }
+        }
+    ],
+    "args": [
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+        }
+    ]
+}

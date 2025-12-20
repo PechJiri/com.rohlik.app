@@ -1,0 +1,37 @@
+{
+    "title": {
+        "en": "Add item by product ID"
+    },
+    "titleFormatted": {
+        "en": "Add [[pieces]] of product ID [[product_id]] to cart"
+    },
+    "args": [
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+        },
+        {
+            "name": "product_id",
+            "type": "text",
+            "title": {
+                "en": "Product ID"
+            },
+            "placeholder": {
+                "en": "e.g. 123456"
+            }
+        },
+        {
+            "name": "pieces",
+            "type": "number",
+            "title": {
+                "en": "Quantity"
+            },
+            "placeholder": {
+                "en": "1 (default)"
+            },
+            "required": false,
+            "min": 1
+        }
+    ]
+}

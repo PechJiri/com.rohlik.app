@@ -1,0 +1,22 @@
+{
+    "title": {
+        "en": "Remove item from cart"
+    },
+    "titleFormatted": {
+        "en": "Remove [[product_in_cart]] from cart"
+    },
+    "args": [
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+        },
+        {
+            "name": "product_in_cart",
+            "type": "autocomplete",
+            "title": {
+                "en": "Item"
+            }
+        }
+    ]
+}

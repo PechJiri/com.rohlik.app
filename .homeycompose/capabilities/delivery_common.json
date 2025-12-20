@@ -1,0 +1,10 @@
+{
+    "type": "string",
+    "title": {
+        "en": "Fastest Common Delivery"
+    },
+    "getable": true,
+    "setable": false,
+    "uiComponent": "sensor",
+    "icon": "/assets/delivery.svg"
+}

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style type="text/css">
+        .homey-form-group {
+            margin-bottom: 1rem;
+        }
+
+        .homey-form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .homey-form-input,
+        .homey-form-select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .homey-form-input:focus,
+        .homey-form-select:focus {
+            outline: none;
+            border-color: #00a0dc;
+            box-shadow: 0 0 0 2px rgba(0, 160, 220, 0.2);
+        }
+
+        .homey-form-input.error,
+        .homey-form-select.error {
+            border-color: #dc3545;
+        }
+
+        .homey-button-primary-full {
+            margin-top: 1rem;
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #00a0dc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .homey-button-primary-full:hover {
+            background-color: #0090c9;
+        }
+
+        .homey-button-primary-full:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .loading:after {
+            content: '';
+            position: absolute;
+            width: 1rem;
+            height: 1rem;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: translateY(-50%) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="homey-header">
+        <h1 class="homey-title" data-i18n="pair.login.title">Log in to Rohlik</h1>
+        <p class="homey-subtitle" data-i18n="pair.login.subtitle">Enter your Rohlik account credentials</p>
+    </header>
+
+    <div class="homey-form">
+        <div class="homey-form-group">
+            <label class="homey-form-label" for="username" data-i18n="settings.email">Email</label>
+            <input class="homey-form-input" type="email" id="username" placeholder="name@example.com" value=""
+                oninput="handleInput()" />
+        </div>
+
+        <div class="homey-form-group">
+            <label class="homey-form-label" for="password" data-i18n="settings.password">Password</label>
+            <input class="homey-form-input" type="password" id="password" value="" oninput="handleInput()" />
+        </div>
+
+        <div class="homey-form-group">
+            <label class="homey-form-label" for="country" data-i18n="settings.country">Country</label>
+            <select class="homey-form-select" id="country" onchange="handleInput()">
+                <option value="CZ">Rohlik.cz (CZ)</option>
+                <option value="DE">Knuspr.de (DE)</option>
+                <option value="AT">Gurkerl.at (AT)</option>
+                <option value="HU">Kifli.hu (HU)</option>
+                <option value="RO">Sezamo.ro (RO)</option>
+            </select>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+
+        <button class="homey-button-primary-full" id="login-btn" onclick="login()" disabled>
+            <span data-i18n="settings.login">Login</span>
+        </button>
+    </div>
+
+    <script type="application/javascript">
+        // Globální proměnné
+        let isChecking = false;
+
+        // Inicializace - voláno ihned po načtení scriptu
+        document.addEventListener('DOMContentLoaded', initializePage);
+
+        async function initializePage() {
+            console.log("pair.html loaded");
+            await Homey.setTitle("Log in to Rohlik");
+            console.log("Title set");
+            validateInput();
+        }
+
+        function handleInput() {
+            validateInput();
+        }
+
+        function validateInput() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const country = document.getElementById('country').value;
+            const button = document.getElementById('login-btn');
+
+            hideError();
+
+            if (username && password && country) {
+                button.disabled = false;
+                return true;
+            } else {
+                button.disabled = true;
+                return false;
+            }
+        }
+
+        async function login() {
+            if (isChecking) return;
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const country = document.getElementById('country').value;
+            const button = document.getElementById('login-btn');
+
+            if (!validateInput()) return;
+
+            try {
+                console.log("Starting login process...");
+                isChecking = true;
+                button.classList.add('loading');
+                button.disabled = true;
+
+                // SDK3: Homey.emit returns Promise
+                console.log("Emitting login event...");
+                const result = await Homey.emit('login', { username, password, country });
+                console.log("Login result:", result);
+
+                // Move to next view
+                Homey.nextView();
+
+            } catch (error) {
+                console.error("Login failed:", error);
+                showError(error.message || "Login failed");
+            } finally {
+                isChecking = false;
+                button.classList.remove('loading');
+                button.disabled = false;
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+        }
+    </script>
+
+</body>
+
+</html>

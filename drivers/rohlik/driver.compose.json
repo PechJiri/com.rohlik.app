@@ -1,0 +1,45 @@
+{
+    "name": {
+        "en": "Rohlik Account"
+    },
+    "class": "other",
+    "capabilities": [
+        "alarm_slots_available",
+        "delivery_express",
+        "delivery_common",
+        "delivery_eco",
+        "measure_cart_total",
+        "measure_cart_items",
+        "measure_next_delivery_eta",
+        "string_next_delivery_status",
+        "measure_reusable_bags"
+    ],
+    "images": {
+        "small": "{{driverAssetsPath}}/images/small.png",
+        "large": "{{driverAssetsPath}}/images/large.png",
+        "xlarge": "{{driverAssetsPath}}/images/xlarge.png"
+    },
+    "pair": [
+        {
+            "id": "pair",
+            "navigation": {
+                "next": "list_my_devices"
+            }
+        },
+        {
+            "id": "list_my_devices",
+            "template": "list_devices",
+            "navigation": {
+                "next": "add_my_devices",
+                "prev": "pair"
+            },
+            "options": {
+                "singular": true
+            }
+        },
+        {
+            "id": "add_my_devices",
+            "template": "add_devices"
+        }
+    ]
+}

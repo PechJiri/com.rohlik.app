@@ -1,0 +1,43 @@
+{
+  "id": "com.rohlik.app",
+  "version": "1.0.0",
+  "compatibility": ">=12.4.0",
+  "sdk": 3,
+  "brandColor": "#000000",
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "Rohlik.cz"
+  },
+  "description": {
+    "en": "Automate your groceries"
+  },
+  "category": [
+    "tools"
+  ],
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Jiri Pech",
+    "email": "jirka@pechovic.cz"
+  },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "pechjiri"
+      },
+      "githubSponsors": {
+        "username": "PechJiri"
+      }
+    }
+  },
+  "source": "https://github.com/PechJiri/V2Cwallbox",
+  "homepage": "https://rohlik.cz//",
+  "support": "mailto:jirka@pechovic.cz",
+  "homeyCommunityTopicId": 147440
+}

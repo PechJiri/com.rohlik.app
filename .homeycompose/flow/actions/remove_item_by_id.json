@@ -1,0 +1,25 @@
+{
+    "title": {
+        "en": "Remove item by product ID"
+    },
+    "titleFormatted": {
+        "en": "Remove product ID [[product_id]] from cart"
+    },
+    "args": [
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+        },
+        {
+            "name": "product_id",
+            "type": "text",
+            "title": {
+                "en": "Product ID"
+            },
+            "placeholder": {
+                "en": "e.g. 123456"
+            }
+        }
+    ]
+}

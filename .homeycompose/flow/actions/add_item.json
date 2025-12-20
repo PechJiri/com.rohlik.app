@@ -1,0 +1,34 @@
+{
+    "title": {
+        "en": "Add item to cart"
+    },
+    "titleFormatted": {
+        "en": "Add [[pieces]] of [[product]] to cart"
+    },
+    "args": [
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+        },
+        {
+            "name": "product",
+            "type": "autocomplete",
+            "title": {
+                "en": "Product"
+            }
+        },
+        {
+            "name": "pieces",
+            "type": "number",
+            "title": {
+                "en": "Quantity"
+            },
+            "placeholder": {
+                "en": "1 (default)"
+            },
+            "required": false,
+            "min": 1
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "type": "boolean",
+    "title": {
+        "en": "Express Slots"
+    },
+    "getable": true,
+    "setable": false,
+    "insights": true,
+    "insightsTitleTrue": {
+        "en": "Express Slots Available"
+    },
+    "insightsTitleFalse": {
+        "en": "Express slots are not available"
+    },
+    "icon": "/assets/time.svg"
+}

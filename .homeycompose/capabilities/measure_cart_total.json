@@ -1,0 +1,12 @@
+{
+    "type": "number",
+    "title": {
+        "en": "Cart Total"
+    },
+    "decimals": 2,
+    "getable": true,
+    "setable": false,
+    "uiComponent": "sensor",
+    "insights": true,
+    "icon": "/assets/cart.svg"
+}

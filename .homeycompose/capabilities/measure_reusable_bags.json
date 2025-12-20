@@ -1,0 +1,15 @@
+{
+    "type": "number",
+    "title": {
+        "en": "Reusable Bags"
+    },
+    "units": {
+        "en": "pcs"
+    },
+    "decimals": 0,
+    "getable": true,
+    "setable": false,
+    "uiComponent": "sensor",
+    "insights": true,
+    "icon": "/assets/cart.svg"
+}

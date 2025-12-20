@@ -1,0 +1,104 @@
+[
+  {
+    "id": "username",
+    "type": "text",
+    "label": {
+      "en": "Username (Email)"
+    },
+    "hint": {
+      "en": "Your Rohlik account email address"
+    }
+  },
+  {
+    "id": "password",
+    "type": "password",
+    "label": {
+      "en": "Password"
+    },
+    "hint": {
+      "en": "Your Rohlik account password"
+    }
+  },
+  {
+    "id": "region",
+    "type": "dropdown",
+    "label": {
+      "en": "Region"
+    },
+    "hint": {
+      "en": "Select your Rohlik region"
+    },
+    "value": "cz",
+    "values": [
+      {
+        "id": "cz",
+        "label": {
+          "en": "Rohlik.cz (Czech Republic)"
+        }
+      },
+      {
+        "id": "de",
+        "label": {
+          "en": "Knuspr.de (Germany)"
+        }
+      },
+      {
+        "id": "at",
+        "label": {
+          "en": "Gurkerl.at (Austria)"
+        }
+      },
+      {
+        "id": "hu",
+        "label": {
+          "en": "Kifli.hu (Hungary)"
+        }
+      },
+      {
+        "id": "ro",
+        "label": {
+          "en": "Sezamo.ro (Romania)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "polling_interval_general",
+    "type": "number",
+    "label": {
+      "en": "General Update Interval (min)"
+    },
+    "hint": {
+      "en": "How often to update cart and orders (default: 1 minute)"
+    },
+    "value": 1,
+    "attr": {
+      "min": 1
+    }
+  },
+  {
+    "id": "polling_interval_slots",
+    "type": "number",
+    "label": {
+      "en": "Delivery Slots Interval (min)"
+    },
+    "hint": {
+      "en": "How often to update delivery slots (default: 15 minutes)"
+    },
+    "value": 15,
+    "attr": {
+      "min": 1
+    }
+  },
+  {
+    "id": "enable_logging",
+    "type": "checkbox",
+    "label": {
+      "en": "Enable Debug Logging"
+    },
+    "value": false,
+    "hint": {
+      "en": "Enable detailed logging for debugging purposes"
+    }
+  }
+]

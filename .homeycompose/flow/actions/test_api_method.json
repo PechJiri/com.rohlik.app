@@ -1,0 +1,81 @@
+{
+    "title": {
+        "en": "Test API Method"
+    },
+    "titleFormatted": {
+        "en": "Call [[method]] API method"
+    },
+    "hint": {
+        "en": "Test any RohlikClient API method (check logs for response)"
+    },
+    "args": [
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+        },
+        {
+            "name": "method",
+            "type": "dropdown",
+            "title": {
+                "en": "API Method"
+            },
+            "values": [
+                {
+                    "id": "getCartContent",
+                    "label": {
+                        "en": "Get Cart Content"
+                    }
+                },
+                {
+                    "id": "getUpcomingOrders",
+                    "label": {
+                        "en": "Get Upcoming Orders"
+                    }
+                },
+                {
+                    "id": "getDeliverySlots",
+                    "label": {
+                        "en": "Get Delivery Slots"
+                    }
+                },
+                {
+                    "id": "getAccountData",
+                    "label": {
+                        "en": "Get Account Data"
+                    }
+                },
+                {
+                    "id": "getOrderHistory",
+                    "label": {
+                        "en": "Get Order History"
+                    }
+                },
+                {
+                    "id": "getDeliveryInfo",
+                    "label": {
+                        "en": "Get Delivery Info"
+                    }
+                },
+                {
+                    "id": "getPremiumInfo",
+                    "label": {
+                        "en": "Get Premium Info"
+                    }
+                },
+                {
+                    "id": "getAnnouncements",
+                    "label": {
+                        "en": "Get Announcements"
+                    }
+                },
+                {
+                    "id": "getReusableBagsInfo",
+                    "label": {
+                        "en": "Get Reusable Bags Info"
+                    }
+                }
+            ]
+        }
+    ]
+}

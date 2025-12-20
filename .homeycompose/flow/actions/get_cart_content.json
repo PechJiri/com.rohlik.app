@@ -1,0 +1,27 @@
+{
+    "title": {
+        "en": "Get cart content"
+    },
+    "titleFormatted": {
+        "en": "Get cart content"
+    },
+    "tokens": [
+        {
+            "name": "cart_content",
+            "type": "string",
+            "title": {
+                "en": "Cart content"
+            },
+            "example": {
+                "en": "Milk, 2 pcs, 25.90 Kč; Bread, 1 pcs, 35.00 Kč"
+            }
+        }
+    ],
+    "args": [
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=rohlik"
+        }
+    ]
+}
