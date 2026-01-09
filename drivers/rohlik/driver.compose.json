@@ -3,6 +3,9 @@
         "en": "Rohlik Account"
     },
     "class": "other",
+    "platforms": [
+        "local"
+    ],
     "capabilities": [
         "alarm_slots_available",
         "delivery_express",

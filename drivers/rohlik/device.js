@@ -63,6 +63,13 @@ module.exports = class RohlikDevice extends Homey.Device {
             return this.onFlowActionTestApiMethod(args, state);
         });
 
+        // Register refresh_data action
+        const refreshDataCard = this.homey.flow.getActionCard('refresh_data');
+        refreshDataCard.registerRunListener(async (args, state) => {
+            this.log('Manual refresh triggered via Flow');
+            return this.updateData();
+        });
+
         // Initialize polling intervals from settings (or defaults)
         this.startPolling();
     }
@@ -82,7 +89,7 @@ module.exports = class RohlikDevice extends Homey.Device {
 
         this.client.on('reusable_bags', async (count) => {
             this.log('Event: Reusable bags count updated:', count);
-            await this.setCapabilityValue('measure_reusable_bags', count).catch(this.error);
+            await this.updateCapabilityValue('measure_reusable_bags', count).catch(this.error);
         });
     }
 
@@ -98,6 +105,16 @@ module.exports = class RohlikDevice extends Homey.Device {
         }
     }
 
+    onDeleted() {
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+        }
+        if (this.deliveryPollingInterval) {
+            clearInterval(this.deliveryPollingInterval);
+        }
+        this.log('RohlikDevice deleted, intervals cleared');
+    }
+
     async onSettings({ oldSettings, newSettings, changedKeys }) {
         this.log('Settings changed:', changedKeys);
 
@@ -107,12 +124,10 @@ module.exports = class RohlikDevice extends Homey.Device {
         );
 
         // Check if polling intervals changed
-        const pollingChanged = changedKeys.some(key =>
-            ['polling_interval_general', 'polling_interval_slots'].includes(key)
-        );
+        const pollingChanged = changedKeys.includes('polling_interval');
 
         if (pollingChanged) {
-            this.log('Polling intervals changed, restarting timers...');
+            this.log('Polling interval changed, restarting timer...');
             this.startPolling();
         }
 
@@ -146,169 +161,208 @@ module.exports = class RohlikDevice extends Homey.Device {
     startPolling() {
         const settings = this.getSettings();
 
-        // Clear existing intervals
-        if (this.pollingIntervalGeneral) clearInterval(this.pollingIntervalGeneral);
-        if (this.pollingIntervalSlots) clearInterval(this.pollingIntervalSlots);
+        // Clear existing interval
+        if (this.pollingInterval) clearInterval(this.pollingInterval);
 
-        // General Data Interval (Cart, Orders, etc.) - Default 1 min
-        const generalMinutes = settings.polling_interval_general || 1;
-        this.log(`Starting General Polling: ${generalMinutes} min`);
-        this.pollingIntervalGeneral = setInterval(() => this.updateGeneralData(), generalMinutes * 60000);
-
-        // Slots Data Interval - Default 15 min
-        const slotsMinutes = settings.polling_interval_slots || 15;
-        this.log(`Starting Slots Polling: ${slotsMinutes} min`);
-        this.pollingIntervalSlots = setInterval(() => this.updateSlotsData(), slotsMinutes * 60000);
+        // Update Interval - Default 10 min
+        const intervalMinutes = settings.polling_interval || 10;
+        this.log(`Starting Polling: ${intervalMinutes} min`);
+        this.pollingInterval = setInterval(() => this.updateData(), intervalMinutes * 60000);
 
         // Initial fetch
         this.updateData();
     }
 
+    manageDeliveryPolling(status) {
+        if (status === 'delivery') {
+            if (!this.deliveryPollingInterval) {
+                this.log('Starting fast delivery polling (1 min)');
+                this.deliveryPollingInterval = setInterval(() => this.updateDeliveryStatusOnly(), 60 * 1000);
+            }
+        } else {
+            if (this.deliveryPollingInterval) {
+                this.log('Stopping fast delivery polling');
+                clearInterval(this.deliveryPollingInterval);
+                this.deliveryPollingInterval = null;
+            }
+        }
+    }
+
+    async updateDeliveryStatusOnly() {
+        if (!this.client.userId) return;
+
+        try {
+            const deliveryAnnouncements = await this.client.getDeliveryAnnouncements();
+            let shipmentState = 'no_upcoming_order';
+            let eta = 0;
+
+            if (deliveryAnnouncements && deliveryAnnouncements.announcements && deliveryAnnouncements.announcements.length > 0) {
+                const announcement = deliveryAnnouncements.announcements[0];
+                if (announcement.icon === 'iconDeliveryCar') {
+                    shipmentState = 'delivery';
+                    if (announcement.content) {
+                        const match = announcement.content.match(/<span[^>]*>(\d+)<\/span>/);
+                        if (match && match[1]) {
+                            eta = parseInt(match[1], 10);
+                        }
+                    }
+                } else if (announcement.icon === 'iconProducts') {
+                    shipmentState = 'preparing_bags';
+                }
+            }
+
+            await this.updateCapabilityValue('string_next_delivery_status', shipmentState);
+            await this.updateCapabilityValue('measure_next_delivery_eta', eta);
+
+            // Update polling state based on result
+            this.manageDeliveryPolling(shipmentState);
+
+        } catch (err) {
+            this.error('Delivery status update failed:', err);
+        }
+    }
+
+    async updateCapabilityValue(capabilityId, value) {
+        const currentValue = this.getCapabilityValue(capabilityId);
+
+        // strict check might fail for objects, but capabilities are usually primitives. 
+        // For logic consistency:
+        if (currentValue !== value) {
+            await this.setCapabilityValue(capabilityId, value).catch(this.error);
+        }
+    }
+
     async updateData() {
-        // Trigger both updates immediately (e.g. onInit or reconnect)
-        await Promise.all([
-            this.updateGeneralData(),
-            this.updateSlotsData()
-        ]);
+        try {
+            // Trigger both updates
+            await Promise.all([
+                this.updateGeneralData(),
+                this.updateSlotsData()
+            ]);
+
+            this.setAvailable();
+        } catch (err) {
+            this.error('Update failed:', err);
+            this.setUnavailable(err.message || 'Update failed');
+
+            this.homey.flow.getTriggerCard('error_occurred')
+                .trigger(this, { error: err.message || 'Unknown error' })
+                .catch(this.error);
+        }
     }
 
     async updateGeneralData() {
         if (!this.client.userId) return;
 
-        try {
-            // 1. Cart
-            const cart = await this.client.getCartContent();
-            await this.setCapabilityValue('measure_cart_total', cart.totalPrice);
-            await this.setCapabilityValue('measure_cart_items', cart.totalItems);
+        // 1. Cart
+        const cart = await this.client.getCartContent();
+        await this.updateCapabilityValue('measure_cart_total', cart.totalPrice);
+        await this.updateCapabilityValue('measure_cart_items', cart.totalItems);
 
-            // 2. Upcoming Orders
-            const upcoming = await this.client.getUpcomingOrders();
-            let hasUpcomingOrder = false;
+        // 2. Upcoming Orders
+        const upcoming = await this.client.getUpcomingOrders();
+        let hasUpcomingOrder = false;
 
-            if (upcoming && upcoming.length > 0) {
-                const nextOrder = upcoming[0];
-                const now = new Date();
-                let diffMins = 0;
+        if (upcoming && upcoming.length > 0) {
+            const nextOrder = upcoming[0];
+            const now = new Date();
+            let diffMins = 0;
 
-                // If deliveryUnixTime exists (from previous observation/code)
-                if (nextOrder.deliveryUnixTime) {
-                    const deliveryTime = new Date(nextOrder.deliveryUnixTime * 1000);
-                    const diffMs = deliveryTime - now;
-                    diffMins = Math.floor(diffMs / 60000);
-                } else if (nextOrder.deliveryTime) {
-                    // If it comes as ISO string
-                    const deliveryTime = new Date(nextOrder.deliveryTime);
-                    const diffMs = deliveryTime - now;
-                    diffMins = Math.floor(diffMs / 60000);
-                }
+            // If deliveryUnixTime exists (from previous observation/code)
+            if (nextOrder.deliveryUnixTime) {
+                const deliveryTime = new Date(nextOrder.deliveryUnixTime * 1000);
+                const diffMs = deliveryTime - now;
+                diffMins = Math.floor(diffMs / 60000);
+            } else if (nextOrder.deliveryTime) {
+                // If it comes as ISO string
+                const deliveryTime = new Date(nextOrder.deliveryTime);
+                const diffMs = deliveryTime - now;
+                diffMins = Math.floor(diffMs / 60000);
+            }
 
-                // await this.setCapabilityValue('measure_next_delivery_eta', diffMins > 0 ? diffMins : 0);
-                hasUpcomingOrder = true;
+            hasUpcomingOrder = true;
 
-                // Trigger courier approaching
-                if (nextOrder.state === 'Delivering' || (diffMins > 0 && diffMins < 15)) {
-                    if (!this.lastCourierWarning || (now - this.lastCourierWarning > 30 * 60 * 1000)) {
-                        this.homey.flow.getTriggerCard('courier_approaching')
-                            .trigger(this, { eta: diffMins })
-                            .catch(this.error);
-                        this.lastCourierWarning = now;
+
+        }
+
+        // 3. Delivery Status Announcement Logic
+        const deliveryAnnouncements = await this.client.getDeliveryAnnouncements();
+
+        let shipmentState = 'no_upcoming_order'; // Default
+        let eta = 0;
+
+        if (deliveryAnnouncements && deliveryAnnouncements.announcements && deliveryAnnouncements.announcements.length > 0) {
+            // Check the first announcement
+            const announcement = deliveryAnnouncements.announcements[0];
+
+            if (announcement.icon === 'iconDeliveryCar') {
+                shipmentState = 'delivery';
+                if (announcement.content) {
+                    const match = announcement.content.match(/<span[^>]*>(\d+)<\/span>/);
+                    if (match && match[1]) {
+                        eta = parseInt(match[1], 10);
                     }
                 }
-            } else {
-                // await this.setCapabilityValue('measure_next_delivery_eta', 0);
+            } else if (announcement.icon === 'iconProducts') {
+                shipmentState = 'preparing_bags';
             }
+        }
 
-            // 3. Delivery Status Announcement Logic
-            // Fetch annoucements to determine status
-            try {
-                const deliveryAnnouncements = await this.client.getDeliveryAnnouncements();
+        await this.updateCapabilityValue('string_next_delivery_status', shipmentState);
+        await this.updateCapabilityValue('measure_next_delivery_eta', eta);
 
-                let shipmentState = 'no_upcoming_order'; // Default
+        // Manage fast polling based on status
+        this.manageDeliveryPolling(shipmentState);
 
-                if (deliveryAnnouncements && deliveryAnnouncements.announcements && deliveryAnnouncements.announcements.length > 0) {
-                    // Check the first announcement (assuming top one is relevant or only one exists for delivery context)
-                    const announcement = deliveryAnnouncements.announcements[0];
-
-                    if (announcement.icon === 'iconDeliveryCar') {
-                        shipmentState = 'delivery';
-                    } else if (announcement.icon === 'iconProducts') {
-                        shipmentState = 'preparing_bags';
-                    }
-                    // If existing, we can assume some valid state for an order, 
-                    // but user specifically mentioned "No active order in response" -> empty response or no announcements.
-                }
-
-                await this.setCapabilityValue('string_next_delivery_status', shipmentState);
-
-            } catch (statusErr) {
-                this.error('Failed to update delivery status:', statusErr);
-                // Fallback if call fails but we knew about order? 
-                // Maybe keep old value or set unknown. 
-                // For now, let's reset to no_upcoming if completely failed might be safer or do nothing.
-            }
-
-            // 4. Reusable Bags Logic
-            try {
-                const bagsInfo = await this.client.getReusableBagsInfo();
-                if (bagsInfo && typeof bagsInfo.current === 'number') {
-                    await this.setCapabilityValue('measure_reusable_bags', bagsInfo.current);
-                }
-            } catch (bagsErr) {
-                this.error('Failed to update reusable bags:', bagsErr);
-            }
-
-        } catch (err) {
-            this.error('Update General Data failed', err);
+        // 4. Reusable Bags Logic
+        const bagsInfo = await this.client.getReusableBagsInfo();
+        if (bagsInfo && typeof bagsInfo.current === 'number') {
+            await this.updateCapabilityValue('measure_reusable_bags', bagsInfo.current);
         }
     }
 
     async updateSlotsData() {
         if (!this.client.userId) return;
 
-        try {
-            const deliverySlots = await this.client.getDeliverySlots();
+        const deliverySlots = await this.client.getDeliverySlots();
 
-            // Handle Express Delivery Slots
-            if (deliverySlots && deliverySlots.expressSlot) {
-                const express = deliverySlots.expressSlot;
-                const capacity = express.timeSlotCapacityDTO;
+        // Handle Express Delivery Slots
+        if (deliverySlots && deliverySlots.expressSlot) {
+            const express = deliverySlots.expressSlot;
+            const capacity = express.timeSlotCapacityDTO;
 
-                if (capacity) {
-                    const isAvailable = capacity.totalFreeCapacityPercent > 0;
-                    await this.setCapabilityValue('alarm_slots_available', isAvailable);
-                    await this.setCapabilityValue('delivery_express', capacity.capacityMessage || 'Unknown');
-                }
+            if (capacity) {
+                const isAvailable = capacity.totalFreeCapacityPercent > 0;
+                await this.updateCapabilityValue('alarm_slots_available', isAvailable);
+                await this.updateCapabilityValue('delivery_express', capacity.capacityMessage || 'Unknown');
+            }
+        } else {
+            await this.updateCapabilityValue('alarm_slots_available', false);
+            await this.updateCapabilityValue('delivery_express', 'Nedostupné');
+        }
+
+        // Handle Preselected Slots (Common & Eco)
+        if (deliverySlots && deliverySlots.preselectedSlots && Array.isArray(deliverySlots.preselectedSlots)) {
+            // Common Delivery (FIRST)
+            const firstSlot = deliverySlots.preselectedSlots.find(s => s.type === 'FIRST');
+            if (firstSlot && firstSlot.subtitle) {
+                const commonText = firstSlot.subtitle.replace(/^\(|\)$/g, '');
+                await this.updateCapabilityValue('delivery_common', commonText);
             } else {
-                await this.setCapabilityValue('alarm_slots_available', false);
-                await this.setCapabilityValue('delivery_express', 'Nedostupné');
+                await this.updateCapabilityValue('delivery_common', 'Nedostupné');
             }
 
-            // Handle Preselected Slots (Common & Eco)
-            if (deliverySlots && deliverySlots.preselectedSlots && Array.isArray(deliverySlots.preselectedSlots)) {
-                // Common Delivery (FIRST)
-                const firstSlot = deliverySlots.preselectedSlots.find(s => s.type === 'FIRST');
-                if (firstSlot && firstSlot.subtitle) {
-                    const commonText = firstSlot.subtitle.replace(/^\(|\)$/g, '');
-                    await this.setCapabilityValue('delivery_common', commonText);
-                } else {
-                    await this.setCapabilityValue('delivery_common', 'Nedostupné');
-                }
-
-                // Eco Delivery (ECO)
-                const ecoSlot = deliverySlots.preselectedSlots.find(s => s.type === 'ECO');
-                if (ecoSlot && ecoSlot.subtitle) {
-                    const ecoText = ecoSlot.subtitle.replace(/^\(|\)$/g, '');
-                    await this.setCapabilityValue('delivery_eco', ecoText);
-                } else {
-                    await this.setCapabilityValue('delivery_eco', 'Nedostupné');
-                }
+            // Eco Delivery (ECO)
+            const ecoSlot = deliverySlots.preselectedSlots.find(s => s.type === 'ECO');
+            if (ecoSlot && ecoSlot.subtitle) {
+                const ecoText = ecoSlot.subtitle.replace(/^\(|\)$/g, '');
+                await this.updateCapabilityValue('delivery_eco', ecoText);
             } else {
-                await this.setCapabilityValue('delivery_common', 'Nedostupné');
-                await this.setCapabilityValue('delivery_eco', 'Nedostupné');
+                await this.updateCapabilityValue('delivery_eco', 'Nedostupné');
             }
-
-        } catch (err) {
-            this.error('Update Slots Data failed', err);
+        } else {
+            await this.updateCapabilityValue('delivery_common', 'Nedostupné');
+            await this.updateCapabilityValue('delivery_eco', 'Nedostupné');
         }
     }
 

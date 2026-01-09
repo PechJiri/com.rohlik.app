@@ -63,29 +63,15 @@
     ]
   },
   {
-    "id": "polling_interval_general",
+    "id": "polling_interval",
     "type": "number",
     "label": {
-      "en": "General Update Interval (min)"
+      "en": "Update Interval (min)"
     },
     "hint": {
-      "en": "How often to update cart and orders (default: 1 minute)"
+      "en": "How often to update all data (cart, orders, slots). Default: 10 minutes."
     },
-    "value": 1,
-    "attr": {
-      "min": 1
-    }
-  },
-  {
-    "id": "polling_interval_slots",
-    "type": "number",
-    "label": {
-      "en": "Delivery Slots Interval (min)"
-    },
-    "hint": {
-      "en": "How often to update delivery slots (default: 15 minutes)"
-    },
-    "value": 15,
+    "value": 10,
     "attr": {
       "min": 1
     }

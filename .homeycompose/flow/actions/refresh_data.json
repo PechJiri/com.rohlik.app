@@ -1,0 +1,12 @@
+{
+    "id": "refresh_data",
+    "title": {
+        "en": "Refresh Data"
+    },
+    "titleFormatted": {
+        "en": "Refresh data from Rohlik"
+    },
+    "hint": {
+        "en": "Manually triggers an update of all data (cart, slots, orders)."
+    }
+}
