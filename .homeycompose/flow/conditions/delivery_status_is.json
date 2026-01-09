@@ -1,0 +1,40 @@
+{
+    "id": "delivery_status_is",
+    "title": {
+        "en": "Delivery status !{{is|is not}}"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=rohlik"
+        },
+        {
+            "name": "status",
+            "type": "dropdown",
+            "title": {
+                "en": "Status"
+            },
+            "values": [
+                {
+                    "id": "no_upcoming_order",
+                    "label": {
+                        "en": "No upcoming order"
+                    }
+                },
+                {
+                    "id": "preparing_bags",
+                    "label": {
+                        "en": "Preparing bags"
+                    }
+                },
+                {
+                    "id": "delivery",
+                    "label": {
+                        "en": "Delivery"
+                    }
+                }
+            ]
+        }
+    ]
+}

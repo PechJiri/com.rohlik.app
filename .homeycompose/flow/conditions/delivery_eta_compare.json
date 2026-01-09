@@ -1,0 +1,48 @@
+{
+    "id": "delivery_eta_compare",
+    "title": {
+        "en": "Delivery ETA !{{is|is not}}"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=rohlik"
+        },
+        {
+            "name": "operator",
+            "type": "dropdown",
+            "title": {
+                "en": "Operator"
+            },
+            "values": [
+                {
+                    "id": "<",
+                    "label": {
+                        "en": "less than"
+                    }
+                },
+                {
+                    "id": "=",
+                    "label": {
+                        "en": "equal to"
+                    }
+                },
+                {
+                    "id": ">",
+                    "label": {
+                        "en": "more than"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+                "en": "Minutes"
+            },
+            "min": 0
+        }
+    ]
+}

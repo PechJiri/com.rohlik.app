@@ -1,0 +1,13 @@
+{
+    "id": "express_slots_available",
+    "title": {
+        "en": "Express slots !{{are|are not}} available"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=rohlik"
+        }
+    ]
+}

@@ -70,6 +70,17 @@ module.exports = class RohlikDevice extends Homey.Device {
             return this.updateData();
         });
 
+        // Register Conditions
+        this.homey.flow.getConditionCard('delivery_status_is')
+            .registerRunListener((args, state) => this.onFlowConditionDeliveryStatusIs(args, state));
+
+        this.homey.flow.getConditionCard('delivery_eta_compare')
+            .registerRunListener((args, state) => this.onFlowConditionDeliveryEtaCompare(args, state));
+
+        this.homey.flow.getConditionCard('express_slots_available')
+            .registerRunListener((args, state) => this.onFlowConditionExpressSlotsAvailable(args, state));
+
+
         // Initialize polling intervals from settings (or defaults)
         this.startPolling();
     }
@@ -487,6 +498,27 @@ module.exports = class RohlikDevice extends Homey.Device {
             this.error(`Method ${method} failed:`, err);
             throw err;
         }
+    }
+
+    async onFlowConditionDeliveryStatusIs(args, state) {
+        const currentStatus = this.getCapabilityValue('string_next_delivery_status');
+        return currentStatus === args.status.id;
+    }
+
+    async onFlowConditionDeliveryEtaCompare(args, state) {
+        const currentEta = this.getCapabilityValue('measure_next_delivery_eta') || 0;
+        const targetEta = args.minutes;
+
+        switch (args.operator.id) {
+            case '<': return currentEta < targetEta;
+            case '=': return currentEta === targetEta;
+            case '>': return currentEta > targetEta;
+            default: return false;
+        }
+    }
+
+    async onFlowConditionExpressSlotsAvailable(args, state) {
+        return this.getCapabilityValue('alarm_slots_available') === true;
     }
 
 };
