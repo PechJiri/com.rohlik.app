@@ -7,21 +7,9 @@ module.exports = class RohlikDevice extends Homey.Device {
         this.log('RohlikDevice has been initialized');
 
         const settings = this.getSettings();
-        const store = this.getStore();
 
-        // settings: username, password (from login_credentials), country (from list)
-        // Note: login_credentials usually saves to internal secure storage or settings?
-        // In SDK3, 'login_credentials' template saves to 'username' and 'password' settings if not handled manually?
-        // Let's assume they are in settings or we moved them. 
-        // Actually, usually it's better to store password in Store or Private Settings effectively.
-        // If using standard template, they end up in Settings (readable in Homey Developer Tools usually!).
-        // User requested "Heslo ukládej do homey.ManagerSettings nebo do Store".
-
-        this.client = new RohlikClient({
-            username: settings.username,
-            password: settings.password,
-            country: settings.country || 'CZ'
-        });
+        // Initialize client with listeners
+        this.initClient(settings);
 
         await this.connect();
 
@@ -79,6 +67,25 @@ module.exports = class RohlikDevice extends Homey.Device {
         this.startPolling();
     }
 
+    initClient(settings) {
+        // cleanup old client listeners if needed - though allowing GC to handle usually fine if we drop reference
+        // but explicit removeAllListeners if we kept it would be good. 
+        if (this.client) {
+            this.client.removeAllListeners();
+        }
+
+        this.client = new RohlikClient({
+            username: settings.username,
+            password: settings.password,
+            country: settings.country || 'CZ'
+        });
+
+        this.client.on('reusable_bags', async (count) => {
+            this.log('Event: Reusable bags count updated:', count);
+            await this.setCapabilityValue('measure_reusable_bags', count).catch(this.error);
+        });
+    }
+
     async connect() {
         try {
             await this.client.login();
@@ -120,10 +127,10 @@ module.exports = class RohlikDevice extends Homey.Device {
             }
 
             // Create new client with updated settings
-            this.client = new RohlikClient({
+            this.initClient({
                 username: newSettings.username,
                 password: newSettings.password,
-                country: newSettings.region || 'cz'
+                country: newSettings.region || 'cz' // map region to country if needed, or stick to convention
             });
 
             // Attempt to login with new credentials
@@ -176,15 +183,13 @@ module.exports = class RohlikDevice extends Homey.Device {
 
             // 2. Upcoming Orders
             const upcoming = await this.client.getUpcomingOrders();
+            let hasUpcomingOrder = false;
+
             if (upcoming && upcoming.length > 0) {
                 const nextOrder = upcoming[0];
                 const now = new Date();
-
-                // Assuming nextOrder has deliveryTime or we calculate from deliveryUnixTime if available on object
-                // The previous code had a TODO about structure. Let's try to be safe.
-                // MCP upcoming response usually is array of orders.
-
                 let diffMins = 0;
+
                 // If deliveryUnixTime exists (from previous observation/code)
                 if (nextOrder.deliveryUnixTime) {
                     const deliveryTime = new Date(nextOrder.deliveryUnixTime * 1000);
@@ -197,8 +202,8 @@ module.exports = class RohlikDevice extends Homey.Device {
                     diffMins = Math.floor(diffMs / 60000);
                 }
 
-                await this.setCapabilityValue('measure_next_delivery_eta', diffMins > 0 ? diffMins : 0);
-                await this.setCapabilityValue('string_next_delivery_status', nextOrder.state || 'Active');
+                // await this.setCapabilityValue('measure_next_delivery_eta', diffMins > 0 ? diffMins : 0);
+                hasUpcomingOrder = true;
 
                 // Trigger courier approaching
                 if (nextOrder.state === 'Delivering' || (diffMins > 0 && diffMins < 15)) {
@@ -210,8 +215,46 @@ module.exports = class RohlikDevice extends Homey.Device {
                     }
                 }
             } else {
-                await this.setCapabilityValue('measure_next_delivery_eta', 0);
-                await this.setCapabilityValue('string_next_delivery_status', 'No orders');
+                // await this.setCapabilityValue('measure_next_delivery_eta', 0);
+            }
+
+            // 3. Delivery Status Announcement Logic
+            // Fetch annoucements to determine status
+            try {
+                const deliveryAnnouncements = await this.client.getDeliveryAnnouncements();
+
+                let shipmentState = 'no_upcoming_order'; // Default
+
+                if (deliveryAnnouncements && deliveryAnnouncements.announcements && deliveryAnnouncements.announcements.length > 0) {
+                    // Check the first announcement (assuming top one is relevant or only one exists for delivery context)
+                    const announcement = deliveryAnnouncements.announcements[0];
+
+                    if (announcement.icon === 'iconDeliveryCar') {
+                        shipmentState = 'delivery';
+                    } else if (announcement.icon === 'iconProducts') {
+                        shipmentState = 'preparing_bags';
+                    }
+                    // If existing, we can assume some valid state for an order, 
+                    // but user specifically mentioned "No active order in response" -> empty response or no announcements.
+                }
+
+                await this.setCapabilityValue('string_next_delivery_status', shipmentState);
+
+            } catch (statusErr) {
+                this.error('Failed to update delivery status:', statusErr);
+                // Fallback if call fails but we knew about order? 
+                // Maybe keep old value or set unknown. 
+                // For now, let's reset to no_upcoming if completely failed might be safer or do nothing.
+            }
+
+            // 4. Reusable Bags Logic
+            try {
+                const bagsInfo = await this.client.getReusableBagsInfo();
+                if (bagsInfo && typeof bagsInfo.current === 'number') {
+                    await this.setCapabilityValue('measure_reusable_bags', bagsInfo.current);
+                }
+            } catch (bagsErr) {
+                this.error('Failed to update reusable bags:', bagsErr);
             }
 
         } catch (err) {

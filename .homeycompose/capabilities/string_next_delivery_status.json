@@ -1,10 +1,30 @@
 {
-    "type": "string",
+    "type": "enum",
     "title": {
         "en": "Delivery Status"
     },
     "getable": true,
     "setable": false,
     "uiComponent": "sensor",
-    "icon": "/assets/delivery.svg"
+    "icon": "/assets/delivery.svg",
+    "values": [
+        {
+            "id": "no_upcoming_order",
+            "title": {
+                "en": "No upcoming order"
+            }
+        },
+        {
+            "id": "preparing_bags",
+            "title": {
+                "en": "Preparing bags"
+            }
+        },
+        {
+            "id": "delivery",
+            "title": {
+                "en": "Delivery"
+            }
+        }
+    ]
 }
