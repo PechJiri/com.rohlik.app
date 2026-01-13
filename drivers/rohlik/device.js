@@ -502,14 +502,16 @@ module.exports = class RohlikDevice extends Homey.Device {
 
     async onFlowConditionDeliveryStatusIs(args, state) {
         const currentStatus = this.getCapabilityValue('string_next_delivery_status');
-        return currentStatus === args.status.id;
+        const targetStatus = args.status.id || args.status;
+        return currentStatus === targetStatus;
     }
 
     async onFlowConditionDeliveryEtaCompare(args, state) {
         const currentEta = this.getCapabilityValue('measure_next_delivery_eta') || 0;
         const targetEta = args.minutes;
+        const operator = args.operator.id || args.operator;
 
-        switch (args.operator.id) {
+        switch (operator) {
             case '<': return currentEta < targetEta;
             case '=': return currentEta === targetEta;
             case '>': return currentEta > targetEta;
